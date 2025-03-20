@@ -18,7 +18,6 @@
             min-height: 100vh;
         }
 
-        /* 开始页面样式 */
         #startPage {
             display: flex;
             flex-direction: column;
@@ -65,7 +64,6 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
-        /* 游戏页面样式 */
         #gamePage {
             display: none;
             padding: 20px;
@@ -113,6 +111,28 @@
             user-select: none;
             transform: translateZ(0);
             will-change: transform;
+        }
+
+        @media (max-width: 480px) {
+            #gameBoard {
+                gap: 5px;
+                padding: 5px;
+            }
+            
+            .card {
+                font-size: 0.8rem;
+                padding: 3px;
+            }
+
+            [data-difficulty="2"] #gameBoard {
+                grid-template-columns: repeat(3, 1fr) !important;
+            }
+            
+            @media (orientation: landscape) {
+                [data-difficulty="2"] #gameBoard {
+                    grid-template-columns: repeat(4, 1fr) !important;
+                }
+            }
         }
 
         .card::after {
@@ -202,16 +222,9 @@
             margin: 5px;
             transition: transform 0.2s;
         }
-
-        @media (max-width: 768px) {
-            .game-title { font-size: 2rem; }
-            .card { font-size: 0.9rem; }
-            .start-btn { font-size: 1.2rem; }
-        }
     </style>
 </head>
 <body>
-    <!-- 开始页面 -->
     <div id="startPage">
         <h1 class="game-title">🦊动物单词连连看🐰</h1>
         <div class="rules-box">
@@ -231,7 +244,6 @@
         </audio>
     </div>
 
-    <!-- 游戏页面 -->
     <div id="gamePage">
         <div class="game-status">
             <div>⏳ 时间: <span id="timer">30</span>秒</div>
@@ -268,7 +280,7 @@
             bgMusic.volume = 0.2;
             bgMusic.play().catch(() => {});
 
-            if(gameInstance) gameInstance = null;
+            if(gameInstance) gameInstance.destroy();
             gameInstance = new WordMatchGame({
                 words: [
                     { en: "fox", zh: "狐狸" },
@@ -297,6 +309,11 @@
                     ],
                     ...config
                 };
+                this.audioPool = {
+                    success: [],
+                    error: [],
+                    poolSize: 3
+                };
                 this.state = {
                     currentLevel: 0,
                     selectedCards: [],
@@ -305,7 +322,35 @@
                     time: 30,
                     timerId: null
                 };
+                this.initAudio();
                 this.init();
+            }
+
+            initAudio() {
+                ['success', 'error'].forEach(type => {
+                    const src = document.getElementById(`${type}Sound`).src;
+                    for(let i = 0; i < this.audioPool.poolSize; i++) {
+                        const audio = new Audio(src);
+                        audio.load();
+                        this.audioPool[type].push(audio);
+                    }
+                });
+            }
+
+            playSound(type) {
+                try {
+                    const availableAudio = this.audioPool[type].find(a => a.paused);
+                    if(availableAudio) {
+                        availableAudio.currentTime = 0;
+                        availableAudio.play();
+                    } else {
+                        const audio = new Audio(this.audioPool[type][0].src);
+                        audio.play();
+                        this.audioPool[type].push(audio);
+                    }
+                } catch(e) {
+                    console.log('音效播放失败:', e);
+                }
             }
 
             init() {
@@ -314,6 +359,11 @@
                 this.setupBoard();
                 this.startTimer();
                 this.updateDisplay();
+            }
+
+            destroy() {
+                this.stopTimer();
+                document.getElementById('gameBoard').innerHTML = '';
             }
 
             resetState() {
@@ -328,6 +378,7 @@
             setupBoard() {
                 const gameBoard = document.getElementById('gameBoard');
                 const levelConfig = this.getCurrentLevelConfig();
+                gameBoard.parentElement.setAttribute('data-difficulty', this.state.currentLevel);
                 
                 gameBoard.style.gridTemplateColumns = `repeat(${levelConfig.columns}, 1fr)`;
                 gameBoard.innerHTML = '';
@@ -389,12 +440,12 @@
                     card.classList.add('matched', 'correct-feedback');
                 });
                 this.state.score += 5;
-                document.getElementById('successSound').play();
+                this.playSound('success');
             }
 
             handleWrongMatch(card1, card2) {
                 this.state.score = Math.max(0, this.state.score - 3);
-                document.getElementById('errorSound').play();
+                this.playSound('error');
                 setTimeout(() => {
                     [card1, card2].forEach(card => {
                         card.style.transform = '';
