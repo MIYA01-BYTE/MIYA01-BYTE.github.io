@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>动物城单词连连看</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            touch-action: manipulation;
+        }
+
+        body {
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            font-family: 'Arial Rounded MT Bold', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        /* 开始页面样式 */
+        #startPage {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: white;
+            text-align: center;
+            height: 100vh;
+        }
+
+        .game-title {
+            font-size: 2.5rem;
+            margin: 30px 0;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+        }
+
+        .rules-box {
+            background: rgba(255,255,255,0.9);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px;
+            max-width: 600px;
+            color: #333;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+        }
+
+        .rules-list {
+            text-align: left;
+            margin: 15px 0;
+            padding-left: 20px;
+            line-height: 1.6;
+        }
+
+        .start-btn {
+            background: #FFD700;
+            color: #6e8efb;
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: transform 0.3s;
+            margin: 30px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        /* 游戏页面样式 */
+        #gamePage {
+            display: none;
+            padding: 20px;
+        }
+
+        .game-status {
+            display: flex;
+            justify-content: space-between;
+            max-width: 600px;
+            margin: 0 auto 20px;
+            padding: 10px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 10px;
+            font-size: 1.1rem;
+        }
+
+        #gameContainer {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        #gameBoard {
+            display: grid;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 12px;
+            touch-action: none;
+        }
+
+        .card {
+            aspect-ratio: 3/2;
+            background: #fff;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.3s;
+            position: relative;
+            background: linear-gradient(145deg, #a8edea 0%, #fed6e3 100%);
+            padding: 5px;
+            user-select: none;
+            transform: translateZ(0);
+            will-change: transform;
+        }
+
+        .card::after {
+            content: '';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 20px;
+            height: 20px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%234CAF50"><path d="M0 0h24v24H0z" fill="none"/><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>');
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .matched {
+            background: #C8E6C9 !important;
+            pointer-events: none;
+            animation: pop 0.5s ease;
+        }
+
+        .matched::after {
+            opacity: 1;
+        }
+
+        .correct-feedback {
+            animation: correctFlash 0.5s;
+        }
+
+        .wrong {
+            animation: shake 0.5s;
+            background: #FFCDD2 !important;
+        }
+
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            25% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+        }
+
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes correctFlash {
+            0% { box-shadow: 0 0 10px rgba(76,175,80,0.5); }
+            50% { box-shadow: 0 0 20px rgba(76,175,80,0.8); }
+            100% { box-shadow: 0 0 10px rgba(76,175,80,0.5); }
+        }
+
+        #gameOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .game-over-box {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+            max-width: 90%;
+        }
+
+        .current-difficulty {
+            color: #6e8efb;
+            font-weight: bold;
+        }
+
+        .retry-btn {
+            background: #6e8efb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            margin: 5px;
+            transition: transform 0.2s;
+        }
+
+        @media (max-width: 768px) {
+            .game-title { font-size: 2rem; }
+            .card { font-size: 0.9rem; }
+            .start-btn { font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- 开始页面 -->
+    <div id="startPage">
+        <h1 class="game-title">🦊动物单词连连看🐰</h1>
+        <div class="rules-box">
+            <h2>📜 游戏规则</h2>
+            <ul class="rules-list">
+                <li>🎯 点击匹配对应的中英文单词</li>
+                <li>✅ 正确匹配 +5 分</li>
+                <li>❌ 错误匹配 -3 分</li>
+                <li>⏳ 每个关卡限时 30 秒</li>
+                <li>🚀 完成当前关卡进入下一难度</li>
+                <li>🏆 共 3 个难度：简单 → 普通 → 困难</li>
+            </ul>
+            <button class="start-btn" onclick="startGame()">▶️ 开始游戏</button>
+        </div>
+        <audio id="bgMusic" loop>
+            <source src="bgMusic.mp3" type="audio/mpeg">
+        </audio>
+    </div>
+
+    <!-- 游戏页面 -->
+    <div id="gamePage">
+        <div class="game-status">
+            <div>⏳ 时间: <span id="timer">30</span>秒</div>
+            <div>⭐ 分数: <span id="score">0</span></div>
+            <div>📊 难度: <span class="current-difficulty" id="currentDifficulty">普通</span></div>
+        </div>
+        <div id="gameContainer">
+            <div id="gameBoard"></div>
+        </div>
+
+        <div id="gameOverlay">
+            <div class="game-over-box">
+                <h2 id="resultTitle"></h2>
+                <div class="score-details">
+                    <p>🎯 最终分数: <span id="finalScore">0</span></p>
+                </div>
+                <button class="retry-btn" id="nextLevelBtn">下一关</button>
+                <button class="retry-btn" onclick="location.reload()">重玩</button>
+            </div>
+        </div>
+    </div>
+
+    <audio id="successSound" src="success.mp3"></audio>
+    <audio id="errorSound" src="error.mp3"></audio>
+
+    <script>
+        let gameInstance = null;
+
+        function startGame() {
+            document.getElementById('startPage').style.display = 'none';
+            document.getElementById('gamePage').style.display = 'block';
+            
+            const bgMusic = document.getElementById('bgMusic');
+            bgMusic.volume = 0.2;
+            bgMusic.play().catch(() => {});
+
+            if(gameInstance) gameInstance = null;
+            gameInstance = new WordMatchGame({
+                words: [
+                    { en: "fox", zh: "狐狸" },
+                    { en: "snake", zh: "蛇" },
+                    { en: "cat", zh: "猫" },
+                    { en: "dog", zh: "狗" },
+                    { en: "shark", zh: "鲨鱼" },
+                    { en: "wolf", zh: "狼" },
+                    { en: "monkey", zh: "猴子" },
+                    { en: "eagle", zh: "雕鹰" },
+                    { en: "whale", zh: "鲸鱼" },
+                    { en: "tiger", zh: "老虎" },
+                    { en: "lion", zh: "狮子" },
+                    { en: "bear", zh: "熊" }
+                ]
+            });
+        }
+
+        class WordMatchGame {
+            constructor(config) {
+                this.config = {
+                    difficultyLevels: [
+                        { name: '简单', columns: 3, pairs: 4 },
+                        { name: '普通', columns: 4, pairs: 6 },
+                        { name: '困难', columns: 5, pairs: 8 }
+                    ],
+                    ...config
+                };
+                this.state = {
+                    currentLevel: 0,
+                    selectedCards: [],
+                    isProcessing: false,
+                    score: 0,
+                    time: 30,
+                    timerId: null
+                };
+                this.init();
+            }
+
+            init() {
+                this.stopTimer();
+                this.resetState();
+                this.setupBoard();
+                this.startTimer();
+                this.updateDisplay();
+            }
+
+            resetState() {
+                this.state = {
+                    ...this.state,
+                    selectedCards: [],
+                    isProcessing: false,
+                    time: 30
+                };
+            }
+
+            setupBoard() {
+                const gameBoard = document.getElementById('gameBoard');
+                const levelConfig = this.getCurrentLevelConfig();
+                
+                gameBoard.style.gridTemplateColumns = `repeat(${levelConfig.columns}, 1fr)`;
+                gameBoard.innerHTML = '';
+
+                const usedWords = this.config.words.slice(0, levelConfig.pairs);
+                const cards = usedWords.flatMap(word => [
+                    this.createCard(word.en, 'en', word.zh),
+                    this.createCard(word.zh, 'zh', word.zh)
+                ]);
+
+                this.shuffleArray(cards);
+                cards.forEach(card => gameBoard.appendChild(card));
+            }
+
+            createCard(text, type, value) {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `<div>${text}</div>`;
+                card.dataset.type = type;
+                card.dataset.value = value;
+                card.addEventListener('pointerdown', (e) => this.handleCardClick(e));
+                return card;
+            }
+
+            handleCardClick(event) {
+                if (this.state.isProcessing) return;
+                const card = event.currentTarget;
+                
+                if (card.classList.contains('matched') || 
+                    this.state.selectedCards.includes(card)) return;
+
+                this.state.selectedCards.push(card);
+                card.style.transform = 'scale(0.95)';
+
+                if (this.state.selectedCards.length === 2) {
+                    this.state.isProcessing = true;
+                    setTimeout(() => this.checkMatch(), 500);
+                }
+            }
+
+            checkMatch() {
+                const [card1, card2] = this.state.selectedCards;
+                const isMatch = card1.dataset.value === card2.dataset.value;
+
+                if (isMatch) {
+                    this.handleCorrectMatch(card1, card2);
+                    this.checkVictory();
+                } else {
+                    this.handleWrongMatch(card1, card2);
+                }
+
+                this.state.selectedCards = [];
+                this.state.isProcessing = false;
+                this.updateDisplay();
+            }
+
+            handleCorrectMatch(card1, card2) {
+                [card1, card2].forEach(card => {
+                    card.classList.add('matched', 'correct-feedback');
+                });
+                this.state.score += 5;
+                document.getElementById('successSound').play();
+            }
+
+            handleWrongMatch(card1, card2) {
+                this.state.score = Math.max(0, this.state.score - 3);
+                document.getElementById('errorSound').play();
+                setTimeout(() => {
+                    [card1, card2].forEach(card => {
+                        card.style.transform = '';
+                        card.classList.add('wrong');
+                        setTimeout(() => card.classList.remove('wrong'), 500);
+                    });
+                }, 500);
+            }
+
+            startTimer() {
+                this.stopTimer();
+                this.state.timerId = setInterval(() => {
+                    this.state.time--;
+                    this.updateDisplay();
+                    if (this.state.time <= 0) this.handleGameOver(false);
+                }, 1000);
+            }
+
+            stopTimer() {
+                clearInterval(this.state.timerId);
+                this.state.timerId = null;
+            }
+
+            checkVictory() {
+                const matchedCards = document.querySelectorAll('.matched').length;
+                const totalCards = this.getCurrentLevelConfig().pairs * 2;
+                if (matchedCards === totalCards) this.handleGameOver(true);
+            }
+
+            handleGameOver(isVictory) {
+                this.stopTimer();
+                const overlay = document.getElementById('gameOverlay');
+                const resultTitle = document.getElementById('resultTitle');
+                const nextLevelBtn = document.getElementById('nextLevelBtn');
+
+                if (isVictory) {
+                    resultTitle.textContent = this.isLastLevel() ? '🎉 恭喜！全部通关！' : '🎉 通关成功！';
+                    nextLevelBtn.style.display = this.isLastLevel() ? 'none' : 'inline-block';
+                } else {
+                    resultTitle.textContent = '⌛ 时间到了！';
+                    nextLevelBtn.style.display = 'none';
+                }
+
+                document.getElementById('finalScore').textContent = this.state.score;
+                overlay.style.display = 'flex';
+
+                nextLevelBtn.onclick = () => {
+                    this.state.currentLevel++;
+                    this.init();
+                    overlay.style.display = 'none';
+                };
+            }
+
+            updateDisplay() {
+                document.getElementById('timer').textContent = this.state.time;
+                document.getElementById('score').textContent = this.state.score;
+                document.getElementById('currentDifficulty').textContent = 
+                    this.getCurrentLevelConfig().name;
+            }
+
+            getCurrentLevelConfig() {
+                return this.config.difficultyLevels[this.state.currentLevel];
+            }
+
+            isLastLevel() {
+                return this.state.currentLevel === this.config.difficultyLevels.length - 1;
+            }
+
+            shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+            }
+        }
+    </script>
+</body>
+</html>
