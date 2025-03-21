@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>古韵抽背系统</title>
+    <style>
+        /* 原有样式保持不变 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: '楷体', 'KaiTi', cursive;
+        }
+
+        body {
+            background: linear-gradient(rgba(243, 238, 232, 0.8), rgba(243, 238, 232, 0.8)),
+                        url('gscb-bg.jpg') center/cover fixed;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* 新增艺术标题 */
+        .classic-title {
+            text-align: center;
+            font-size: 3rem;
+            color: #6b4f36;
+            text-shadow: 2px 2px 4px rgba(139, 115, 85, 0.3);
+            margin: 30px 0;
+            letter-spacing: 4px;
+            font-weight: bold;
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        .classic-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #8b7355, transparent);
+        }
+
+ 
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .panel {
+            background: #fff9f0;
+            border: 3px solid #8b7355;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            height: 20px;
+            background: #fff9f0;
+            clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%);
+        }
+
+        h2 {
+            text-align: center;
+            color: #6b4f36;
+            margin-bottom: 20px;
+            font-size: 24px;
+            text-shadow: 1px 1px 2px #ddd;
+        }
+
+        .display-box {
+            height: 100px;
+            background: #f7f3e9;
+            border: 2px dashed #8b7355;
+            border-radius: 10px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: #5a442a;
+            position: relative;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: linear-gradient(145deg, #8b7355, #6b4f36);
+            color: white;
+            border: 2px solid #5a442a;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        #answer {
+            display: none;
+            white-space: pre-wrap;
+            line-height: 1.8;
+            color: #5a442a;
+            padding: 15px;
+            background: #f7f3e9;
+            border-radius: 10px;
+            margin-top: 15px;
+        /* 新增字体大小设置 */
+            font-size: 20px;  /* 基础字号 */
+            font-weight: 500; /* 可选加粗 */
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .upload-btn {
+            background: linear-gradient(145deg, #a2836e, #8b7355);
+            margin: 10px 0;
+        }
+
+        .decorative {
+            position: fixed;
+            opacity: 0.1;
+            pointer-events: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            .display-box {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <audio id="bgm" src="gscbbg.mp3" loop></audio>
+
+    <!-- 新增标题 -->
+    <h1 class="classic-title">诗韵琅嬛</h1>
+    
+    <div class="container">
+        <!-- 学生抽选面板 -->
+        <div class="panel">
+            <h2>🎓 学子抽选</h2>
+            <button class="upload-btn" onclick="document.getElementById('stuFile').click()">📜 导入学子名录（请导入txt文档，每行一个姓名）</button>
+            <div class="display-box" id="studentDisplay">静候抽选</div>
+            <div class="button-group">
+                <button onclick="toggleStudent()">🎲 开始抽选</button>
+                <button onclick="stopStudent()">⏸️ 暂停</button>
+            </div>
+        </div>
+
+        <!-- 古诗抽选面板 -->
+        <div class="panel">
+            <h2>📜 古诗抽选</h2>
+            <button class="upload-btn" onclick="document.getElementById('poemFile').click()">📖 导入诗词库（请导入txt文档，标题与内容用换行分隔，两首古诗之间需空一行）</button>
+            <div class="display-box" id="poemDisplay">待君来抽</div>
+            <div id="answer"></div>
+            <div class="button-group">
+                <button onclick="togglePoem()">🌸 开始抽题</button>
+                <button onclick="stopPoem()">⏸️ 暂停</button>
+                <button onclick="showAnswer()">🔍 查看答案</button>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="stuFile" accept=".txt" onchange="loadStudents(event)">
+    <input type="file" id="poemFile" accept=".txt" onchange="loadPoems(event)">
+
+    <script>
+        // 音乐控制
+        const bgm = document.getElementById('bgm');
+        bgm.volume = 0.5;
+
+        // 默认数据
+        let students = Array.from({length:60}, (_,i) => `学子 ${i+1}`);
+        let poems = [
+            ["观沧海", "东临碣石，以观沧海。\n水何澹澹，山岛竦峙。\n树木丛生，百草丰茂。\n秋风萧瑟，洪波涌起。\n日月之行，若出其中；\n星汉灿烂，若出其里。\n幸甚至哉，歌以咏志。"],
+            ["次北固山下", "客路青山外，行舟绿水前。\n潮平两岸阔，风正一帆悬。\n海日生残夜，江春入旧年。\n乡书何处达？归雁洛阳边。"],
+            ["闻王昌龄左迁龙标遥有此寄", "杨花落尽子规啼，\n闻道龙标过五溪。\n我寄愁心与明月，\n随君直到夜郎西。"],
+            ["天净沙·秋思", "枯藤老树昏鸦，\n小桥流水人家，\n古道西风瘦马。\n夕阳西下，\n断肠人在天涯。"],
+            ["峨眉山月歌", "峨眉山月半轮秋，\n影入平羌江水流。\n夜发清溪向三峡，\n思君不见下渝州。"],
+            ["江南逢李龟年", "岐王宅里寻常见，\n崔九堂前几度闻。\n正是江南好风景，\n落花时节又逢君。"],
+            ["行军九日思长安故园", "强欲登高去，\n无人送酒来。\n遥怜故园菊，\n应傍战场开。"],
+            ["夜上受降城闻笛", "回乐峰前沙似雪，\n受降城外月如霜。\n不知何处吹芦管，\n一夜征人尽望乡。"],
+            ["秋词（其一）", "自古逢秋悲寂寥，\n我言秋日胜春朝。\n晴空一鹤排云上，\n便引诗情到碧霄。"],
+            ["夜雨寄北", "君问归期未有期，\n巴山夜雨涨秋池。\n何当共剪西窗烛，\n却话巴山夜雨时。"],
+            ["十一月四日风雨大作（其二）", "僵卧孤村不自哀，\n尚思为国戍轮台。\n夜阑卧听风吹雨，\n铁马冰河入梦来。"],
+            ["潼关", "终古高云簇此城，\n秋风吹散马蹄声。\n河流大野犹嫌束，\n山入潼关不解平。"]
+        ];
+
+        // 学生抽选逻辑
+        let studentInterval;
+        function toggleStudent() {
+            hideAnswer();
+            if (!studentInterval) {
+                bgm.play();
+                studentInterval = setInterval(() => {
+                    document.getElementById('studentDisplay').textContent = 
+                        students[Math.floor(Math.random() * students.length)];
+                }, 100);
+            }
+        }
+        function stopStudent() {
+            clearInterval(studentInterval);
+            studentInterval = null;
+            bgm.pause();
+        }
+
+        // 古诗抽选逻辑
+        let poemInterval;
+        function togglePoem() {
+            hideAnswer();
+            if (!poemInterval) {
+                bgm.play();
+                poemInterval = setInterval(() => {
+                    const poem = poems[Math.floor(Math.random() * poems.length)];
+                    document.getElementById('poemDisplay').textContent = poem[0];
+                    document.getElementById('answer').textContent = poem[1];
+                }, 100);
+            }
+        }
+        function stopPoem() {
+            clearInterval(poemInterval);
+            poemInterval = null;
+            bgm.pause();
+        }
+        function showAnswer() {
+            document.getElementById('answer').style.display = 'block';
+        }
+        function hideAnswer() {
+            document.getElementById('answer').style.display = 'none';
+        }
+
+        // 文件加载
+    function loadStudents(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            // 清除旧数据后导入新数据
+            students = e.target.result.split('\n')
+                .map(line => line.trim())
+                .filter(line => line !== '');
+
+            // 强制触发页面更新
+            document.getElementById('studentDisplay').textContent = 
+                students.length > 0 ? "名单已更新" : "静候抽选";
+
+            alert(`成功导入 ${students.length} 位学子\n文件：${file.name}`);
+            
+            // 重置文件选择器
+            document.getElementById('stuFile').value = '';
+        };
+        reader.readAsText(file);
+    }
+
+    function loadPoems(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const rawText = e.target.result
+                .replace(/\r\n/g, '\n')
+                .replace(/\r/g, '\n')
+
+            const poemBlocks = rawText.split(/\n{2,}/)
+                .filter(block => block.trim() !== '');
+
+            // 清除旧数据后导入新数据
+            poems = poemBlocks.map(block => {
+                const lines = block.split('\n')
+                    .map(line => line.trim())
+                    .filter(line => line !== '');
+                return lines.length > 0 ? [lines[0], lines.slice(1).join('\n')] : null;
+            }).filter(Boolean);
+
+            // 强制刷新显示
+            document.getElementById('poemDisplay').textContent = 
+                poems.length > 0 ? "题库已更新" : "待君来抽";
+
+            alert(`成功导入 ${poems.length} 首古诗\n文件：${file.name}`);
+            
+            // 重置文件选择器
+            document.getElementById('poemFile').value = '';
+        };
+        reader.readAsText(file);
+    }
+    </script>
+</body>
+</html>
