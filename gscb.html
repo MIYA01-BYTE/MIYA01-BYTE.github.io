@@ -20,6 +20,27 @@
             padding: 20px;
         }
 
+        /* 新增音效开关样式 */
+        .sound-control {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: linear-gradient(145deg, #8b7355, #6b4f36);
+            color: white;
+            border: 2px solid #5a442a;
+            border-radius: 25px;
+            padding: 8px 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .sound-control:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
         /* 新增艺术标题 */
         .classic-title {
             text-align: center;
@@ -168,6 +189,9 @@
 <body>
     <audio id="bgm" src="gscbbg.mp3" loop></audio>
 
+    <!-- 新增音效开关 -->
+    <div class="sound-control" id="soundControl" onclick="toggleSound()">🔊 音效开</div>
+
     <!-- 新增标题 -->
     <h1 class="classic-title">诗韵琅嬛</h1>
     
@@ -201,9 +225,22 @@
     <input type="file" id="poemFile" accept=".txt" onchange="loadPoems(event)">
 
     <script>
-        // 音乐控制
+        // 新增音效控制功能
+        let isSoundOn = true;
         const bgm = document.getElementById('bgm');
         bgm.volume = 0.5;
+
+        function toggleSound() {
+            isSoundOn = !isSoundOn;
+            const soundControl = document.getElementById('soundControl');
+            if (isSoundOn) {
+                bgm.play();
+                soundControl.innerHTML = '🔊 音效开';
+            } else {
+                bgm.pause();
+                soundControl.innerHTML = '🔇 音效关';
+            }
+        }
 
         // 默认数据
         let students = Array.from({length:60}, (_,i) => `学子 ${i+1}`);
