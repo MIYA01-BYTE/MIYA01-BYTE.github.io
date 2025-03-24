@@ -1,0 +1,75 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+ 
+<head> 
+  <meta charset="UTF-8"> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+  <title>哪吒2抽奖游戏</title> 
+  <link rel="stylesheet" href="styles.css">  
+</head> 
+ 
+<body> 
+  <!-- 音频元素，用于播放背景音乐 --> 
+  <audio id="bgMusic" autoplay loop> 
+    <source src="bgy.mp3"  type="audio/mpeg"> 
+    你的浏览器不支持音频播放。 
+  </audio> 
+  <!-- 游戏容器 --> 
+  <div class="game-container"> 
+    <!-- 卡片列表 --> 
+    <div class="card-list"> 
+      <!-- 每张卡片 --> 
+      <div class="card" data-content="免作业卡"> 
+        <div class="card-front"> 
+          <img src="哪吒.jpg"  alt="哪吒"> 
+        </div> 
+        <div class="card-back">免作业卡</div> 
+      </div> 
+      <div class="card" data-content="抽奖的人唱一首歌"> 
+        <div class="card-front"> 
+          <img src="敖丙.jpg"  alt="敖丙"> 
+        </div> 
+        <div class="card-back">抽奖的人唱一首歌</div> 
+      </div> 
+      <div class="card" data-content="老师跳个舞"> 
+        <div class="card-front"> 
+          <img src="敖光.jpg"  alt="敖光"> 
+        </div> 
+        <div class="card-back">老师跳个舞</div> 
+      </div> 
+      <div class="card" data-content="空奖"> 
+        <div class="card-front"> 
+          <img src="敖闰.jpg"  alt="敖闰"> 
+        </div> 
+        <div class="card-back">空奖</div> 
+      </div> 
+      <div class="card" data-content="一支漂亮的笔"> 
+        <div class="card-front"> 
+          <img src="李靖.jpg"  alt="李靖"> 
+        </div> 
+        <div class="card-back">一支漂亮的笔</div> 
+      </div> 
+      <div class="card" data-content="一根棒棒糖"> 
+        <div class="card-front"> 
+          <img src="殷夫人.jpg"  alt="殷夫人"> 
+        </div> 
+        <div class="card-back">一根棒棒糖</div> 
+      </div> 
+      <div class="card" data-content="老师给你个大拥抱"> 
+        <div class="card-front"> 
+          <img src="申小豹.jpg"  alt="申小豹"> 
+        </div> 
+        <div class="card-back">老师给你个大拥抱</div> 
+      </div> 
+      <div class="card" data-content="点别的同学唱歌"> 
+        <div class="card-front"> 
+          <img src="申公豹.jpg"  alt="申公豹"> 
+        </div> 
+        <div class="card-back">点别的同学唱歌</div> 
+      </div> 
+    </div> 
+  </div> 
+  <script src="script.js"></script>  
+</body> 
+ 
+</html> 
