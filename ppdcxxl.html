@@ -1,0 +1,609 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>泡泡单词消消乐</title>
+    <style>
+        :root {
+            --primary-color: #FF6B6B;
+            --success-color: #4CAF50;
+            --info-color: #2196F3;
+            --warning-color: #FF9800;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            font-family: 'Comic Sans MS', 'Microsoft YaHei', cursive;
+            min-height: 100vh;
+        }
+
+        #header {
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        h1 {
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(255, 105, 180, 0.5);
+            font-size: clamp(1.8rem, 5vw, 2.5rem);
+            margin: 10px 0;
+        }
+
+        #status {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 15px;
+            background: rgba(255,255,255,0.9);
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: clamp(14px, 2vw, 18px);
+            color: #333;
+        }
+
+        .status-icon {
+            font-size: 1.4em;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .status-value {
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+
+        #game-container {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        #game-area {
+            flex: 1;
+            min-height: 400px;
+            height: 60vh;
+            position: relative;
+            border: 3px solid rgba(255,255,255,0.8);
+            border-radius: 20px;
+            overflow: hidden;
+            background: rgba(255,255,255,0.3);
+            backdrop-filter: blur(5px);
+        }
+
+        #control-panel {
+            width: 300px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 2px solid rgba(255,255,255,0.5);
+        }
+
+        .bubble {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 3px 3px 15px rgba(0,0,0,0.2);
+            font-weight: bold;
+            color: white;
+            font-size: 20px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.5);
+            animation: float 3s ease-in-out infinite;
+        }
+        @media (max-width: 768px) {
+            #game-container {
+                flex-direction: column;
+            }
+
+            #game-area {
+                width: 100%;
+                height: 50vh;
+            }
+
+            #control-panel {
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            #status {
+                position: static;
+                justify-content: center;
+                margin-top: 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .status-item {
+                flex: 1 1 100%;
+                justify-content: center;
+            }
+
+            #control-panel {
+                padding: 15px;
+            }
+
+            button {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        .bubble.selected {
+            transform: scale(1.2) rotate(10deg);
+            filter: brightness(1.2);
+            box-shadow: 0 0 25px rgba(255,255,255,0.9);
+        }
+        #file-input {
+            margin-bottom: 15px;
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: 2px dashed #FF6B6B;
+        }
+        button {
+            background: #FF6B6B;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 16px;
+            margin: 5px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 100%;
+        }
+        #export-btn {
+            background: #4CAF50;
+            margin-top: 15px;
+        }
+        #export-btn:hover {
+            background: #45a049;
+        }
+        button:hover {
+            background: #FF5252;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+        #music-control, #sound-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.9);
+            padding: 15px;
+            border-radius: 50%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            cursor: pointer;
+            font-size: 24px;
+            z-index: 100;
+        }
+        #sound-control {
+            bottom: 80px;
+        }
+        #word-table {
+            margin-top: 20px;
+            width: 100%;
+            border-collapse: collapse;
+            display: none;
+        }
+        #word-table td {
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        #game-over {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.3);
+            text-align: center;
+            z-index: 1000;
+            width: 300px;
+        }
+        #game-over h2 {
+            color: #FF6B6B;
+            margin-top: 0;
+        }
+        #game-over button {
+            margin-top: 20px;
+        }
+        @keyframes pop {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+        .pop-out {
+            animation: pop 0.5s forwards !important;
+        }
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(5px); }
+            50% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div id="music-control" onclick="toggleMusic()">🎵</div>
+    <div id="sound-control" onclick="toggleSound()">🔊</div>
+
+    <!-- 状态显示更新 -->
+    <div id="header">
+        <h1>🍭泡泡单词消消乐🍬</h1>
+        <div id="status">
+            <div class="status-item">
+                <span class="status-icon" style="background: var(--info-color); color: white;">⏳</span>
+                <span>时间: <span class="status-value" id="timer">0</span>s</span>
+            </div>
+            <div class="status-item">
+                <span class="status-icon" style="background: var(--warning-color); color: white;">❌</span>
+                <span>错误: <span class="status-value" id="errors">0</span></span>
+            </div>
+            <div class="status-item">
+                <span class="status-icon" style="background: var(--success-color); color: white;">🎯</span>
+                <span>得分: <span class="status-value" id="current-score">0</span></span>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="game-container">
+        <div id="game-area"></div>
+        
+        <div id="control-panel">
+            <input type="file" id="file-input" accept=".txt">
+            <button onclick="loadWords()">📂加载单词</button>
+            <button onclick="startGame()">🎮开始游戏</button>
+            <button id="export-btn" onclick="exportErrors()">📥导出错词</button>
+            <table id="word-table">
+                <thead>
+                    <tr><th>英文</th><th>中文</th></tr>
+                </thead>
+                <tbody id="word-list"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="game-over">
+        <h2>游戏结束!</h2>
+        <p>最终得分: <span id="final-score">0</span>分</p>
+        <p>用时: <span id="final-time">0</span>秒</p>
+        <button onclick="location.reload()">重新开始</button>
+    </div>
+
+    <audio id="bgm" loop src="bgMusic.mp3"></audio>
+    <audio id="match-sound" src="success.mp3"></audio>
+    <audio id="error-sound" src="error.mp3"></audio>
+
+    <script>
+        // 新增响应式调整函数
+        function adjustLayout() {
+            const gameArea = document.getElementById('game-area');
+            if (window.innerWidth < 768) {
+                gameArea.style.height = '50vh';
+            } else {
+                gameArea.style.height = '60vh';
+            }
+        }
+
+        // 初始化时执行
+        window.addEventListener('resize', adjustLayout);
+        adjustLayout();
+
+        let words = [];
+        let selectedBubble = null;
+        let currentWords = [];
+        let time = 0;
+        let errors = 0;
+        let score = 0;
+        let timerId;
+        let errorWords = [];
+        let isMusicOn = true;
+        let isSoundOn = true;
+        const gameArea = document.getElementById('game-area');
+        const bgm = document.getElementById('bgm');
+        bgm.volume = 0.2;
+
+        const defaultWords = [
+            { en: "apple", cn: "苹果" },
+            { en: "sun", cn: "太阳" },
+            { en: "happy", cn: "快乐" },
+            { en: "book", cn: "书" },
+            { en: "music", cn: "音乐" },
+            { en: "friend", cn: "朋友" },
+            { en: "flower", cn: "花" },
+            { en: "moon", cn: "月亮" },
+            { en: "smile", cn: "微笑" },
+            { en: "star", cn: "星星" }
+        ];
+
+        function toggleMusic() {
+            isMusicOn = !isMusicOn;
+            if (isMusicOn) {
+                bgm.play();
+                document.getElementById('music-control').style.background = 'rgba(255,255,255,0.9)';
+            } else {
+                bgm.pause();
+                document.getElementById('music-control').style.background = 'rgba(255,0,0,0.2)';
+            }
+        }
+
+        function toggleSound() {
+            isSoundOn = !isSoundOn;
+            const btn = document.getElementById('sound-control');
+            btn.textContent = isSoundOn ? '🔊' : '🔇';
+            btn.style.background = isSoundOn 
+                ? 'rgba(255,255,255,0.9)'
+                : 'rgba(255,0,0,0.2)';
+        }
+
+        function playSound(id) {
+            if (!isSoundOn) return;
+            const sound = document.getElementById(id);
+            sound.currentTime = 0;
+            sound.play().catch(() => {});
+        }
+
+        function recordError(wordKey) {
+            const word = words.find(w => w.en === wordKey);
+            if (word && !errorWords.some(w => w.en === wordKey)) {
+                errorWords.push(word);
+            }
+        }
+
+        function exportErrors() {
+            if (errorWords.length === 0) {
+                alert('暂无错误记录');
+                return;
+            }
+
+            const csvContent = "data:text/csv;charset=utf-8,\uFEFF" 
+                + "英文,中文\n" 
+                + errorWords.map(w => `${w.en},${w.cn}`).join("\n");
+
+            const link = document.createElement("a");
+            link.href = encodeURI(csvContent);
+            link.download = "错误单词记录.csv";
+            link.click();
+        }
+
+        function loadWords() {
+            const file = document.getElementById('file-input').files[0];
+            if (!file) {
+                words = [...defaultWords];
+                updateWordTable();
+                alert('使用默认单词列表');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                words = e.target.result
+                    .split(/\r?\n/)
+                    .filter(line => line.trim())
+                    .map(line => {
+                        const [en, cn] = line.split(/[，,]/).map(s => s.trim());
+                        return en && cn ? { en, cn } : null;
+                    })
+                    .filter(Boolean);
+
+                if (words.length === 0) {
+                    alert('文件格式错误，请使用英文逗号分隔的txt文件');
+                    return;
+                }
+
+                updateWordTable();
+                alert(`成功加载 ${words.length} 组单词`);
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        function updateWordTable() {
+            document.getElementById('word-list').innerHTML = words
+                .map(word => `<tr><td>${word.en}</td><td>${word.cn}</td></tr>`)
+                .join('');
+            document.getElementById('word-table').style.display = 'table';
+        }
+
+        function startGame() {
+            if (words.length < 10) {
+                alert('至少需要10组单词');
+                return;
+            }
+            
+            gameArea.innerHTML = '';
+            document.getElementById('game-over').style.display = 'none';
+            document.getElementById('word-table').style.display = 'none';
+            time = 0;
+            errors = 0;
+            score = 0;
+            errorWords = [];
+            updateScoreDisplay();
+            clearInterval(timerId);
+            
+            currentWords = shuffle([...words]).slice(0, 10);
+            createBubbles();
+            
+            timerId = setInterval(() => {
+                time++;
+                document.getElementById('timer').textContent = time;
+            }, 1000);
+
+            try {
+                bgm.play();
+            } catch(e) {
+                console.log('需要用户交互后才能播放音乐');
+            }
+        }
+
+        function createBubbles() {
+            currentWords.forEach(word => {
+                createBubble(word.en, 'en', word.en);
+                createBubble(word.cn, 'cn', word.en);
+            });
+            positionBubbles();
+        }
+
+        function createBubble(text, type, key) {
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            bubble.textContent = text;
+            bubble.dataset.type = type;
+            bubble.dataset.wordKey = key;
+            const hue = Math.floor(Math.random() * 360);
+            bubble.style.backgroundColor = `hsla(${hue}, 80%, 65%, 0.9)`;
+            bubble.onclick = handleBubbleClick;
+            gameArea.appendChild(bubble);
+        }
+
+        function positionBubbles() {
+            const bubbles = [...document.getElementsByClassName('bubble')];
+            const areaRect = gameArea.getBoundingClientRect();
+            
+            bubbles.forEach(bubble => {
+                const maxX = areaRect.width - 120;
+                const maxY = areaRect.height - 120;
+                bubble.style.left = Math.random() * maxX + 'px';
+                bubble.style.top = Math.random() * maxY + 'px';
+            });
+        }
+
+        function handleBubbleClick(e) {
+            const current = e.target;
+            
+            if (!selectedBubble) {
+                selectedBubble = current;
+                current.classList.add('selected');
+                return;
+            }
+
+            const isMatch = selectedBubble.dataset.wordKey === current.dataset.wordKey &&
+                          selectedBubble.dataset.type !== current.dataset.type;
+
+            if (isMatch) {
+                handleMatch(selectedBubble, current);
+            } else {
+                handleMismatch(selectedBubble, current);
+            }
+
+            selectedBubble.classList.remove('selected');
+            selectedBubble = null;
+        }
+
+        function handleMatch(bubble1, bubble2) {
+            bubble1.classList.add('pop-out');
+            bubble2.classList.add('pop-out');
+            playSound('match-sound');
+
+            let removeCount = 0;
+            const removeAfterAnimation = () => {
+                if (++removeCount === 2) {
+                    bubble1.remove();
+                    bubble2.remove();
+                    checkGameOver();
+                }
+            };
+            
+            bubble1.addEventListener('animationend', removeAfterAnimation);
+            bubble2.addEventListener('animationend', removeAfterAnimation);
+
+            score += 10;
+            updateScoreDisplay();
+        }
+
+        function handleMismatch(bubble1, bubble2) {
+            errors++;
+            score -= 5;
+            updateScoreDisplay();
+            
+            const wordKey = bubble1.dataset.wordKey;
+            recordError(wordKey);
+
+            document.getElementById('errors').textContent = errors;
+            playSound('error-sound');
+
+            bubble1.classList.add('shake');
+            bubble2.classList.add('shake');
+            
+            setTimeout(() => {
+                bubble1.classList.remove('shake');
+                bubble2.classList.remove('shake');
+            }, 500);
+        }
+
+        function updateScoreDisplay() {
+            score = Math.max(0, score);
+            document.getElementById('current-score').textContent = score;
+            document.getElementById('final-score').textContent = score;
+        }
+
+        function checkGameOver() {
+            setTimeout(() => {
+                if (gameArea.children.length === 0) {
+                    clearInterval(timerId);
+                    document.getElementById('game-over').style.display = 'block';
+                    document.getElementById('final-time').textContent = time;
+                    bgm.pause();
+                }
+            }, 100);
+        }
+
+        function shuffle(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        window.onload = function() {
+            words = [...defaultWords];
+            updateWordTable();
+            bgm.volume = 0.2;
+        };
+    </script>
+</body>
+</html>
