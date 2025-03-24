@@ -318,7 +318,7 @@
         let answersVisible = false;
         let generatedProblems = [];
 
-        // 修复后的文件导入功能
+        // ================== 增强版文件导入验证 ==================
         document.getElementById('importFile').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -326,29 +326,56 @@
             const reader = new FileReader();
             reader.onload = function(event) {
                 const content = event.target.result;
-                const lines = content.split(/\r?\n/).filter(line => line.trim() !== '');
+                const lines = content.split(/\r?\n/);
                 let successCount = 0;
+                let errorLines = [];
 
-                generatedProblems = lines.map(line => {
-                    const parts = line.split(/[/,]/).map(part => part.trim());
-                    if (parts.length >= 2) {
-                        successCount++;
-                        return {
-                            problem: parts[0],
-                            answer: parts[1],
-                            difficulty: parseInt(parts[2]) || 0
-                        };
+                generatedProblems = lines.map((line, index) => {
+                    const trimmedLine = line.trim();
+                    if (!trimmedLine) return null;
+
+                    // 增强格式验证正则表达式
+                    const match = trimmedLine.match(/^(.+?)[\/|,](.+?)([\/|,]\d+)?$/);
+                    if (!match) {
+                        errorLines.push(`第${index+1}行: 格式错误`);
+                        return null;
                     }
-                    return null;
+
+                    const problem = match[1].trim();
+                    const answer = match[2].trim();
+                    
+                    // 数学表达式验证
+                    const problemValid = /^[0-9a-zA-Z²+-]+(\s*[0-9a-zA-Z²+-]*)+\s*$/.test(problem);
+                    const answerValid = /^[0-9a-zA-Z()²+-]+(\s*[0-9a-zA-Z()²+-]*)+\s*$/.test(answer);
+                    
+                    if (!problemValid || !answerValid) {
+                        errorLines.push(`第${index+1}行: 非数学表达式`);
+                        return null;
+                    }
+
+                    successCount++;
+                    return {
+                        problem: problem,
+                        answer: answer,
+                        difficulty: parseInt(match[3]) || 0
+                    };
                 }).filter(item => item !== null);
 
-                e.target.value = ''; // 关键修复：清空文件选择器
+                e.target.value = '';
 
-                if(successCount > 0) {
-                    alert(`成功导入 ${successCount} 道题目`);
-                    renderProblems();
+                let message = '';
+                if (successCount > 0) {
+                    message += `成功导入 ${successCount} 道题目\n`;
+                }
+                if (errorLines.length > 0) {
+                    message += `检测到${errorLines.length}处格式错误（示例）：\n${errorLines.slice(0,3).join('\n')}`;
+                }
+                
+                if (message) {
+                    alert(message);
+                    if (successCount > 0) renderProblems();
                 } else {
-                    alert('导入失败！请检查文件格式（每行格式：题目/答案或题目/答案/难度）');
+                    alert('文件内容为空或格式不匹配');
                 }
             };
             reader.readAsText(file, 'UTF-8');
