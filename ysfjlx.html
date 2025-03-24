@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✨ 智能因式分解练习器</title>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #4cc9f0;
+            --accent: #f72585;
+            --success: #2ec4b6;
+            --light: #f8f9fa;
+            --gradient: linear-gradient(135deg, var(--primary), var(--secondary));
+        }
+
+        body {
+            font-family: 'Segoe UI', '微软雅黑', sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            background: var(--gradient);
+            position: relative;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .header h1 {
+            color: var(--primary);
+            margin: 0;
+            font-size: 2.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .control-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 1.5rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .input-group {
+            margin-bottom: 1.2rem;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid var(--primary);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--accent);
+            outline: none;
+            box-shadow: 0 0 8px rgba(247,37,133,0.2);
+        }
+
+        button {
+            background: var(--gradient);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67,97,238,0.3);
+        }
+
+        .timer-section {
+            background: rgba(255,255,255,0.95);
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+
+        .content-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .problems, .answers {
+            background: rgba(255,255,255,0.95);
+            padding: 1.5rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            min-height: 400px;
+        }
+
+        h3 {
+            color: var(--primary);
+            margin: 0 0 1.5rem 0;
+            padding-bottom: 1rem;
+            border-bottom: 3px solid var(--secondary);
+            font-size: 1.8rem;
+        }
+
+        .problem-item {
+            padding: 1rem;
+            margin: 0.8rem 0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 4px solid var(--primary);
+        }
+
+        .problem-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 3px 12px rgba(67,97,238,0.1);
+        }
+
+        .answer-item {
+            padding: 1rem;
+            margin: 1rem 0;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 2px dashed var(--secondary);
+            display: none;
+        }
+
+        .action-buttons {
+            margin-top: 2rem;
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+            min-width: 180px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.1);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .action-btn:hover::before {
+            opacity: 1;
+        }
+
+        .action-btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .action-btn-secondary {
+            background: var(--success);
+            color: white;
+        }
+
+        .action-btn-export {
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(67,97,238,0.3);
+        }
+
+        .action-btn:active {
+            transform: translateY(1px);
+        }
+
+        .button-icon {
+            margin-right: 0.8rem;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.1));
+        }
+
+        @media (max-width: 768px) {
+            .action-buttons {
+                gap: 1rem;
+            }
+            .action-btn {
+                min-width: 160px;
+                padding: 0.8rem 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✨<span>智能因式分解练习器</span></h1>
+        </div>
+
+        <div class="control-section">
+            <div class="card">
+                <div class="input-group">
+                    <input type="file" id="importFile" hidden>
+                    <button onclick="document.getElementById('importFile').click()">
+                        📁 导入题目
+                    </button>
+                    <small style="color:#666; margin-top:0.5rem; display:block">
+                        支持.txt格式，每行格式：题目/答案或题目/答案/难度
+                    </small>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="input-group">
+                    <input type="number" id="numProblems" value="10" min="1" max="50">
+                    <small style="color:#666">题目数量（1-50）</small>
+                </div>
+                <div class="input-group">
+                    <select id="difficulty">
+                        <option value="mix">混合难度</option>
+                        <option value="easy">简单模式</option>
+                        <option value="medium">中等模式</option>
+                        <option value="hard">困难模式</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="input-group">
+                    <input type="number" id="timer" placeholder="倒计时（分钟）">
+                    <button onclick="startTimer()">⏳ 启动计时器</button>
+                </div>
+                <div class="input-group">
+                    <button onclick="generateProblems()">🚀 生成题目</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="timer-section">
+            <div id="timeDisplay" style="font-size:2rem; color:var(--primary); font-weight:bold"></div>
+            <div style="height:8px; background:#eee; border-radius:4px; margin:1rem 0">
+                <div id="timerProgress" style="height:100%; background:var(--gradient); width:100%; transition:width 1s linear"></div>
+            </div>
+        </div>
+
+        <div class="content-wrapper">
+            <div class="problems" id="problemsContainer">
+                <h3>📚 练习题</h3>
+            </div>
+            <div class="answers" id="answersContainer">
+                <h3>🔑 参考答案</h3>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="action-btn action-btn-primary" onclick="toggleAnswers()">
+                <span class="button-icon">🎯</span>
+                <span>显示全部答案</span>
+            </button>
+            <button class="action-btn action-btn-export" onclick="exportProblems()">
+                <span class="button-icon">📤</span>
+                <span>导出题目</span>
+            </button>
+            <button class="action-btn action-btn-secondary" onclick="exportAnswers()">
+                <span class="button-icon">🔐</span>
+                <span>导出答案</span>
+            </button>
+        </div>
+    </div>
+
+    <audio id="endSound" src="end.mp3"></audio>
+
+    <script>
+        let currentTimer = null;
+        let answersVisible = false;
+        let generatedProblems = [];
+
+        // 修复后的文件导入功能
+        document.getElementById('importFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const content = event.target.result;
+                const lines = content.split(/\r?\n/).filter(line => line.trim() !== '');
+                let successCount = 0;
+
+                generatedProblems = lines.map(line => {
+                    const parts = line.split(/[/,]/).map(part => part.trim());
+                    if (parts.length >= 2) {
+                        successCount++;
+                        return {
+                            problem: parts[0],
+                            answer: parts[1],
+                            difficulty: parseInt(parts[2]) || 0
+                        };
+                    }
+                    return null;
+                }).filter(item => item !== null);
+
+                e.target.value = ''; // 关键修复：清空文件选择器
+
+                if(successCount > 0) {
+                    alert(`成功导入 ${successCount} 道题目`);
+                    renderProblems();
+                } else {
+                    alert('导入失败！请检查文件格式（每行格式：题目/答案或题目/答案/难度）');
+                }
+            };
+            reader.readAsText(file, 'UTF-8');
+        });
+
+        // 新增导出功能
+        function exportProblems() {
+            const content = generatedProblems
+                .map((p, i) => `${i+1}. ${p.problem} = ________`)
+                .join('\n');
+            download('练习题.txt', content);
+        }
+
+        function exportAnswers() {
+            const content = generatedProblems
+                .map((p, i) => `${i+1}. ${p.answer}`)
+                .join('\n');
+            download('参考答案.txt', content);
+        }
+
+        function download(filename, text) {
+            const element = document.createElement('a');
+            element.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(text);
+            element.download = filename;
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+
+        // 修改后的倒计时函数（新增结束音效）
+        function startTimer() {
+            const minutes = parseInt(document.getElementById('timer').value) || 10;
+            let totalSeconds = minutes * 60;
+            const progressBar = document.getElementById('timerProgress');
+            const timeDisplay = document.getElementById('timeDisplay');
+            
+            if(currentTimer) clearInterval(currentTimer);
+            
+            progressBar.style.width = '100%';
+            const startTime = Date.now();
+            const totalTime = minutes * 60 * 1000;
+
+            const updateTimerDisplay = (seconds) => {
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                timeDisplay.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+            };
+
+            updateTimerDisplay(totalSeconds);
+            
+            currentTimer = setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                const remaining = Math.max(totalTime - elapsed, 0);
+                const seconds = Math.ceil(remaining / 1000);
+
+                updateTimerDisplay(seconds);
+                progressBar.style.width = `${(remaining / totalTime) * 100}%`;
+
+                if(remaining <= 0) {
+                    clearInterval(currentTimer);
+                    document.getElementById('endSound').play(); // 播放新音效
+                    document.getElementById('timeoutSound').play();
+                    alert('时间到！');
+                    toggleAnswers();
+                }
+            }, 1000);
+        }
+
+        // 题目生成函数
+        function generateGCF() {
+            const coeff = Math.floor(Math.random() * 4) + 2;
+            const a = Math.floor(Math.random() * 5) + 1;
+            const b = Math.floor(Math.random() * 5) + 1;
+            const variables = ['x', 'y', 'z'];
+            const varName = variables[Math.floor(Math.random() * variables.length)];
+
+            const problem = `${coeff*a}${varName}² + ${coeff*b}${varName}`
+                .replace('1x²', 'x²').replace('1x', 'x');
+            const answer = `${coeff}${varName}(${a}${varName} + ${b})`;
+
+            return { problem, answer, difficulty: 1 };
+        }
+
+        function generateDifferenceOfSquares() {
+            const a = Math.floor(Math.random() * 5) + 1;
+            const b = Math.floor(Math.random() * 5) + 1;
+            return {
+                problem: `${a*a}x² - ${b*b}`.replace('1x²', 'x²'),
+                answer: `(${a}x + ${b})(${a}x - ${b})`,
+                difficulty: 2
+            };
+        }
+
+        function generatePerfectSquare() {
+            const a = Math.floor(Math.random() * 3) + 1;
+            let b;
+            do { b = Math.floor(Math.random() * 10) - 5; } while (b === 0);
+            
+            const midTerm = 2*a*b;
+            return {
+                problem: `${a*a}x² ${midTerm >= 0 ? '+' : '-'} ${Math.abs(midTerm)}x + ${b*b}`
+                          .replace(' 1x', ' x').replace('1x²', 'x²'),
+                answer: b > 0 ? `(${a}x + ${b})²` : `(${a}x - ${Math.abs(b)})²`,
+                difficulty: 3
+            };
+        }
+
+        function generateQuadraticTrinomial() {
+            let a, b, c, d;
+            do {
+                a = Math.floor(Math.random() * 3) + 1;
+                c = Math.floor(Math.random() * 3) + 1;
+                b = Math.floor(Math.random() * 10) - 5;
+                d = Math.floor(Math.random() * 10) - 5;
+            } while (a*d + b*c === 0 || b*d === 0);
+
+            const ax = a*c;
+            const bx = a*d + b*c;
+            const cx = b*d;
+
+            return {
+                problem: `${ax}x² ${bx >= 0 ? '+' : '-'} ${Math.abs(bx)}x ${cx >= 0 ? '+' : '-'} ${Math.abs(cx)}`
+                          .replace('1x²', 'x²').replace(' 1x', ' x'),
+                answer: `(${a}x ${b < 0 ? '-' : '+'} ${Math.abs(b)})(${c}x ${d < 0 ? '-' : '+'} ${Math.abs(d)})`,
+                difficulty: 4
+            };
+        }
+
+        // 修改后的渲染函数
+        function renderProblems() {
+            const num = generatedProblems.length;
+            const problemsHTML = generatedProblems.map((p, i) => `
+                <div class="problem-item" onclick="showAnswer(${i})">
+                    ${i+1}. ${p.difficulty ? '[难度'+p.difficulty+']' : ''} ${p.problem} = _______________
+                </div>
+            `).join('');
+
+            const answersHTML = generatedProblems.map((p, i) => `
+                <div class="answer-item" id="answer-${i}">
+                    ${i+1}. ${p.answer}
+                </div>
+            `).join('');
+
+            document.getElementById('problemsContainer').innerHTML = `
+                <h3>📝 练习题（共 ${num} 题）</h3>
+                ${problemsHTML}
+            `;
+
+            document.getElementById('answersContainer').innerHTML = `
+                <h3>🔑 参考答案</h3>
+                ${answersHTML}
+            `;
+
+            answersVisible = false;
+            document.querySelectorAll('.answer-item').forEach(item => item.style.display = 'none');
+            document.querySelector('.show-all-btn').textContent = '🔓 显示全部答案';
+        }
+
+        function generateProblems() {
+            const num = Math.min(50, Math.max(1, parseInt(document.getElementById('numProblems').value) || 10));
+            const difficulty = document.getElementById('difficulty').value;
+            
+            generatedProblems = [];
+            while(generatedProblems.length < num) {
+                let generator;
+                const rand = Math.random();
+                
+                switch(difficulty) {
+                    case 'easy':
+                        generator = rand < 0.7 ? generateGCF : generateDifferenceOfSquares;
+                        break;
+                    case 'medium':
+                        if(rand < 0.4) generator = generateGCF;
+                        else if(rand < 0.7) generator = generateDifferenceOfSquares;
+                        else generator = generatePerfectSquare;
+                        break;
+                    case 'hard':
+                        generator = rand < 0.7 ? generateQuadraticTrinomial : generatePerfectSquare;
+                        break;
+                    default: // mix
+                        const generators = [generateGCF, generateDifferenceOfSquares, generatePerfectSquare, generateQuadraticTrinomial];
+                        generator = generators[Math.floor(Math.random()*4)];
+                }
+                
+                const result = generator();
+                if(!generatedProblems.some(p => p.problem === result.problem)) {
+                    generatedProblems.push(result);
+                }
+            }
+
+            // 按难度排序
+            generatedProblems.sort((a,b) => a.difficulty - b.difficulty);
+
+            // 渲染题目
+            const problemsHTML = generatedProblems.map((p, i) => `
+                <div class="problem-item" onclick="showAnswer(${i})">
+                    ${i+1}. [难度${p.difficulty}] ${p.problem} = _______________
+                </div>
+            `).join('');
+
+            // 渲染答案
+            const answersHTML = generatedProblems.map((p, i) => `
+                <div class="answer-item" id="answer-${i}">
+                    ${i+1}. ${p.answer}
+                </div>
+            `).join('');
+
+            document.getElementById('problemsContainer').innerHTML = `
+                <h3>📝 练习题（共 ${num} 题）</h3>
+                ${problemsHTML}
+            `;
+
+            document.getElementById('answersContainer').innerHTML = `
+                <h3>🔑 参考答案</h3>
+                ${answersHTML}
+            `;
+
+            answersVisible = false;
+            document.querySelectorAll('.answer-item').forEach(item => item.style.display = 'none');
+            document.querySelector('.show-all-btn').textContent = '🔓 显示全部答案';
+        }
+
+        function showAnswer(index) {
+            const answer = document.getElementById(`answer-${index}`);
+            answer.style.display = 'block';
+        }
+
+        function toggleAnswers() {
+            answersVisible = !answersVisible;
+            document.querySelectorAll('.answer-item').forEach(item => {
+                item.style.display = answersVisible ? 'block' : 'none';
+            });
+            document.querySelector('.show-all-btn').textContent = 
+                answersVisible ? '🔒 隐藏全部答案' : '🔓 显示全部答案';
+        }
+
+        // 初始化生成
+        generateProblems();
+    </script>
+</body>
+</html>
