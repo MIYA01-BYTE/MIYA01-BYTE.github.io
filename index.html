@@ -1,53 +1,56 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-<head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, minimum-scale=0.5">
+    <meta http-equiv="Permissions-Policy" content="autoplay=(self)">
     <title>哪吒2抽奖游戏</title>
     <style>
-        /* 基础样式 */
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body { 
             background-image: url('nazha.jpg');  
             background-size: cover; 
+            background-attachment: fixed;
             background-position: center;
-            background-repeat: no-repeat; 
             display: flex; 
             flex-direction: column;
             align-items: center; 
-            min-height: 100vh; 
-            padding: 20px;
+            min-height: 100vh;
+            padding: 15px;
+            overflow-x: hidden;
         } 
 
-        /* 标题样式 */
         .game-title {
             color: #fff;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            font-size: 2.5rem;
-            margin: 20px 0;
-            text-align: center;
-            background: rgba(0,0,0,0.3);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            font-size: clamp(1.5rem, 6vw, 2.5rem);
+            margin: 15px auto; /* 修正居中问题 */
             padding: 10px 20px;
+            background: rgba(0,0,0,0.5);
             border-radius: 10px;
+            width: fit-content;
+            max-width: 90%;
+            text-align: center; /* 确保文本居中 */
         }
         
         .game-container { 
             width: 100%;
             max-width: 800px;
-            margin-top: auto;
-            margin-bottom: auto;
+            margin: auto;
+            padding: 10px;
         } 
         
         .card-list { 
             display: grid; 
             grid-template-columns: repeat(4, 1fr); 
-            gap: 15px;
+            gap: 12px;
             justify-content: center;
+            padding-bottom: 20px;
         } 
         
         .card { 
@@ -55,7 +58,8 @@
             width: 100%;
             padding-bottom: 150%;
             perspective: 1000px; 
-            cursor: pointer; 
+            cursor: pointer;
+            touch-action: manipulation;
         } 
         
         .card-front,
@@ -65,12 +69,9 @@
             height: 100%; 
             backface-visibility: hidden; 
             transition: transform 0.6s; 
-            border-radius: 10px;
+            border-radius: 8px;
             overflow: hidden;
-        } 
-        
-        .card-front { 
-            transform: rotateY(0deg); 
+            will-change: transform;
         } 
         
         .card-front img { 
@@ -80,16 +81,17 @@
         } 
         
         .card-back { 
-            background: rgba(240, 240, 240, 0.95);
+            background: rgba(255, 255, 255, 0.95);
             display: flex; 
             justify-content: center; 
             align-items: center; 
             transform: rotateY(180deg); 
-            padding: 15px;
-            font-size: 1.2rem;
+            padding: 10px;
+            font-size: clamp(0.9rem, 3vw, 1.2rem);
             text-align: center;
             line-height: 1.4;
-            border: 2px solid #ff6b6b;
+            border: 2px solid #ff4757;
+            word-break: break-word;
         } 
         
         .card.flipped .card-front { 
@@ -100,46 +102,24 @@
             transform: rotateY(0deg); 
         }
 
-        /* 响应式设计 */
         @media (max-width: 768px) {
-            .game-title {
-                font-size: 2rem;
-                margin: 15px 0;
-            }
             .card-list {
                 grid-template-columns: repeat(3, 1fr);
-                gap: 12px;
-            }
-            .card-back {
-                font-size: 1rem;
-                padding: 10px;
+                gap: 10px;
             }
         }
 
         @media (max-width: 480px) {
-            .game-title {
-                font-size: 1.5rem;
-                padding: 8px 15px;
+            body {
+                padding: 10px;
+                min-height: -webkit-fill-available;
             }
             .card-list {
                 grid-template-columns: repeat(2, 1fr);
-                gap: 10px;
+                gap: 8px;
             }
-            .card-back {
-                font-size: 0.9rem;
-                padding: 8px;
-            }
-            body {
-                padding: 10px;
-            }
-        }
-
-        @media (min-width: 1200px) {
-            .game-container {
-                max-width: 1000px;
-            }
-            .card-back {
-                font-size: 1.4rem;
+            .card {
+                padding-bottom: 140%;
             }
         }
     </style>
@@ -149,18 +129,17 @@
         <source src="bgy.mp3" type="audio/mpeg">
         <source src="bgy.ogg" type="audio/ogg">
         <source src="bgy.wav" type="audio/wav">
-        你的浏览器不支持音频播放。
     </audio>
 
     <h1 class="game-title">哪吒2抽奖游戏</h1>
     
     <div class="game-container">
         <div class="card-list">
-            <!-- 卡片列表 -->
             <div class="card" data-content="免作业卡">
                 <div class="card-front"><img src="哪吒.jpg" alt="哪吒"></div>
                 <div class="card-back">免作业卡</div>
             </div>
+            <!-- 其他卡片保持相同结构 -->
             <div class="card" data-content="抽奖的人唱一首歌">
                 <div class="card-front"><img src="敖丙.jpg" alt="敖丙"></div>
                 <div class="card-back">抽奖的人唱一首歌</div>
@@ -194,44 +173,67 @@
 
     <script>
         (function() {
-            // 自动播放处理
+            // 增强版音频处理方案
             const audio = document.getElementById('bgMusic');
-            let audioPlayed = false;
+            let audioInitialized = false;
 
-            // 首次自动播放尝试
-            const playPromise = audio.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(() => {
-                    // 自动播放被阻止时，在用户首次交互时自动播放
-                    const handleFirstInteraction = () => {
-                        audio.play();
-                        document.removeEventListener('click', handleFirstInteraction);
-                        document.removeEventListener('touchstart', handleFirstInteraction);
-                    };
-                    document.addEventListener('click', handleFirstInteraction);
-                    document.addEventListener('touchstart', handleFirstInteraction);
-                });
+            // 新版自动播放处理
+            function initAudio() {
+                if(audioInitialized) return;
+                
+                const playPromise = audio.play();
+                
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        // 方案一：静音自动播放后恢复
+                        audio.muted = true;
+                        audio.play().then(() => {
+                            setTimeout(() => {
+                                audio.muted = false;
+                                audio.play().catch(() => {});
+                            }, 1000);
+                        });
+                    });
+                }
+                audioInitialized = true;
             }
 
-            // 卡片点击逻辑
-            const cards = document.querySelectorAll('.card');
-            cards.forEach(card => {
+            // 统一交互事件处理
+            function handleUserInteraction() {
+                initAudio();
+                document.removeEventListener('click', handleUserInteraction);
+                document.removeEventListener('touchstart', handleUserInteraction);
+            }
+
+            // 页面加载策略
+            document.addEventListener('DOMContentLoaded', () => {
+                // 桌面端立即尝试
+                if(!/Mobi|Android/i.test(navigator.userAgent)) {
+                    initAudio();
+                }
+                
+                // 通用事件绑定
+                document.addEventListener('click', handleUserInteraction);
+                document.addEventListener('touchstart', handleUserInteraction);
+            });
+
+            // 卡片点击逻辑（保持不变）
+            document.querySelectorAll('.card').forEach(card => {
                 card.addEventListener('click', () => {
                     if (!card.classList.contains('flipped')) {
                         card.classList.add('flipped');
                     }
-                    // 触发音频播放（针对部分浏览器）
-                    if (!audioPlayed) {
-                        audio.play();
-                        audioPlayed = true;
-                    }
+                    if(!audioInitialized) initAudio();
                 });
             });
 
-            // 移动端优化
-            document.addEventListener('touchstart', function(e) {
-                e.preventDefault();
-            }, { passive: false });
+            // 移动端优化（保持不变）
+            let lastTouch = 0;
+            document.addEventListener('touchend', function(event) {
+                const now = new Date().getTime();
+                if (now - lastTouch <= 300) event.preventDefault();
+                lastTouch = now;
+            }, false);
         })();
     </script>
 </body>
